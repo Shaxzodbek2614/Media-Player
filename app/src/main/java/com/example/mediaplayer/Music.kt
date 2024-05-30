@@ -1,3 +1,5 @@
 package com.example.mediaplayer
 
-data class Music(val id:Long, val title:String, val imagePath:String, val musicPath:String, val author:String)
+import java.io.Serializable
+
+data class Music(var id:Long, var title:String, var imagePath:String, var musicPath:String, var author:String):Serializable

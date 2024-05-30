@@ -1,6 +1,8 @@
 package com.example.mediaplayer
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.media.MediaPlayer
 import android.net.Uri
@@ -14,68 +16,68 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+
 import com.example.mediaplayer.databinding.ActivityMainBinding
 
 private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
-    lateinit var mediaPlayer: MediaPlayer
-    lateinit var handler: Handler
+    lateinit var musicAdapter: MusicAdapter
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        handler = Handler(Looper.getMainLooper())
-        //mediaPlayer = MediaPlayer.create(this,R.raw.bethoven)
-        val list = musicFiles()
-      Log.d(TAG, "onCreate: $list")
-        println("salom")
-        mediaPlayer = MediaPlayer.create(this, Uri.parse("/storage/emulated/0/Music/telegram_afgana_muz_avara_avara_98.mp3"))
-        mediaPlayer.start()
-
-       binding.btnPlay.setOnClickListener {
-           if (mediaPlayer.isPlaying){
-               mediaPlayer.pause()
-               binding.btnPlay.text = "Play"
-           }else{
-               mediaPlayer.start()
-               binding.btnPlay.text = "Pause"
-           }
-       }
-
-        binding.seekBar.max = mediaPlayer.duration
-        handler.postDelayed(runnable,1000)
-        binding.musicDuration.text = millisToTime(mediaPlayer.duration)
-        binding.seekBar.setOnSeekBarChangeListener(object :SeekBar.OnSeekBarChangeListener{
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if(fromUser) {
-                    mediaPlayer.seekTo(progress)
-                }
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-               // mediaPlayer.seekTo(binding.seekBar.progress)
-            }
-        })
-
-    }
-    val runnable = object :Runnable {
-        override fun run() {
-            binding.musicPosition.text = millisToTime(mediaPlayer.currentPosition)
-            binding.seekBar.progress = mediaPlayer.currentPosition
-            handler.postDelayed(this,1000)
+        if(MyData.music!=null){
+            binding.name.text = MyData.music?.title
+            binding.auothor.text = MyData.music?.author
         }
+
+        val list = musicFiles()
+        MyData.list = list
+        if (MyData.mediaPlayer!=null && MyData.a==true){
+            binding.btnPlay.setImageResource(R.drawable.pause)
+        }
+        binding.btnPlay.setOnClickListener {
+            if (MyData.mediaPlayer!=null && MyData.mediaPlayer!!.isPlaying){
+                MyData.mediaPlayer!!.pause()
+                binding.btnPlay.setImageResource(R.drawable.play)
+            }else if (MyData.mediaPlayer!=null && !MyData.mediaPlayer!!.isPlaying){
+                MyData.mediaPlayer!!.start()
+                binding.btnPlay.setImageResource(R.drawable.pause)
+            }
+        }
+
+        Log.d(TAG, "onCreate: $list")
+        musicAdapter = MusicAdapter(object :MusicAdapter.RvAction{
+            override fun onClick(music: Music, position: Int) {
+                val intent = Intent(this@MainActivity,MainActivity2::class.java)
+                intent.putExtra("music",music)
+                intent.putExtra("key",position)
+                startActivity(intent)
+                if (MyData.mediaPlayer!=null && !MyData.mediaPlayer!!.isPlaying) {
+                    MyData.mediaPlayer = MediaPlayer.create(this@MainActivity, Uri.parse(list[position].musicPath))
+                    MyData.mediaPlayer?.start()
+                    MyData.a = true
+                    MyData.music = music
+                }else{
+                    MyData.mediaPlayer?.stop()
+                    MyData.mediaPlayer = MediaPlayer.create(this@MainActivity, Uri.parse(list[position].musicPath))
+                    MyData.mediaPlayer?.start()
+                    MyData.a = true
+                    MyData.music = music
+                }
+                if (MyData.mediaPlayer!=null){
+                    binding.name.text = MyData.music?.title
+                    binding.auothor.text = MyData.music?.author
+                }
+                MyData.p = position
+            }
+        },list)
+        binding.rv.adapter = musicAdapter
+
     }
-    fun millisToTime(millis:Int):String{
-        val minut = millis/60000
-        val sekund = millis%60000/1000
-        return "$minut:$sekund"
-    }
-    fun Context.musicFiles():MutableList<Music>{
-        val list:MutableList<Music> = mutableListOf()
+    @SuppressLint("Range")
+    fun Context.musicFiles():ArrayList<Music>{
+        val list:ArrayList<Music> = ArrayList()
         val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0"
         val sortOrder = MediaStore.Audio.Media.TITLE + " ASC"
@@ -108,4 +110,6 @@ class MainActivity : AppCompatActivity() {
         }
         return  list
     }
+
+
 }
