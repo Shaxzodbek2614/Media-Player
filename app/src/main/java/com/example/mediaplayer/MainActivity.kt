@@ -30,11 +30,19 @@ class MainActivity : AppCompatActivity() {
             binding.name.text = MyData.music?.title
             binding.auothor.text = MyData.music?.author
         }
+        binding.musicBar.setOnClickListener {
+            if (MyData.music!=null) {
+                val intent = Intent(this, MainActivity2::class.java)
+                startActivity(intent)
+            }
+        }
 
         val list = musicFiles()
         MyData.list = list
-        if (MyData.mediaPlayer!=null && MyData.a==true){
+        if (MyData.mediaPlayer!=null && MyData.mediaPlayer!!.isPlaying){
             binding.btnPlay.setImageResource(R.drawable.pause)
+        }else{
+            binding.btnPlay.setImageResource(R.drawable.play)
         }
         binding.btnPlay.setOnClickListener {
             if (MyData.mediaPlayer!=null && MyData.mediaPlayer!!.isPlaying){
@@ -56,18 +64,16 @@ class MainActivity : AppCompatActivity() {
                 if (MyData.mediaPlayer!=null && !MyData.mediaPlayer!!.isPlaying) {
                     MyData.mediaPlayer = MediaPlayer.create(this@MainActivity, Uri.parse(list[position].musicPath))
                     MyData.mediaPlayer?.start()
-                    MyData.a = true
                     MyData.music = music
                 }else{
                     MyData.mediaPlayer?.stop()
                     MyData.mediaPlayer = MediaPlayer.create(this@MainActivity, Uri.parse(list[position].musicPath))
                     MyData.mediaPlayer?.start()
-                    MyData.a = true
                     MyData.music = music
                 }
                 if (MyData.mediaPlayer!=null){
-                    binding.name.text = MyData.music?.title
-                    binding.auothor.text = MyData.music?.author
+                    binding.name.text = MyData.music!!.title
+                    binding.auothor.text = MyData.music!!.author
                 }
                 MyData.p = position
             }

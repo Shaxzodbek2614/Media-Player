@@ -22,32 +22,33 @@ class MainActivity2 : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         handler = Handler(Looper.getMainLooper())
-        val position = intent.getIntExtra("key",0)
-        //mediaPlayer = MediaPlayer.create(this,R.raw.bethoven)
-        val list = MyData.list
-        var mediaPlayer = MyData.mediaPlayer
-
+        
+        if (MyData.mediaPlayer!!.isPlaying){
+            binding.play.setImageResource(R.drawable.pause)
+        }else{
+            binding.play.setImageResource(R.drawable.play)
+        }
 
         binding.play.setOnClickListener {
-            if (mediaPlayer!!.isPlaying){
-                mediaPlayer!!.pause()
+            if (MyData.mediaPlayer!!.isPlaying){
+                MyData.mediaPlayer!!.pause()
                 binding.play.setImageResource(R.drawable.play)
             }else{
-                mediaPlayer!!.start()
+                MyData.mediaPlayer!!.start()
                 binding.play.setImageResource(R.drawable.pause)
             }
         }
         binding.qaytish.setOnClickListener {
-            startActivity(Intent(this,MainActivity::class.java))
+            finish()
         }
 
-        binding.seekBar.max = mediaPlayer!!.duration
+        binding.seekBar.max = MyData.mediaPlayer!!.duration
         handler.postDelayed(runnable,1000)
-        binding.musicDuration.text = millisToTime(mediaPlayer!!.duration)
+        binding.musicDuration.text = millisToTime(MyData.mediaPlayer!!.duration)
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if(fromUser) {
-                    mediaPlayer!!.seekTo(progress)
+                    MyData.mediaPlayer!!.seekTo(progress)
                 }
             }
 
@@ -56,36 +57,62 @@ class MainActivity2 : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                // mediaPlayer.seekTo(binding.seekBar.progress)
+                // MyData.mediaPlayer.seekTo(binding.seekBar.progress)
             }
         })
         binding.musicTezOtish.setOnClickListener {
-            mediaPlayer?.seekTo(mediaPlayer?.currentPosition?.plus(10000)?:0)
+            MyData.mediaPlayer?.seekTo(MyData.mediaPlayer?.currentPosition?.plus(10000)?:0)
         }
         binding.musicTezQaytish.setOnClickListener {
-            mediaPlayer?.seekTo(mediaPlayer?.currentPosition?.minus(10000)?:0)
+            MyData.mediaPlayer?.seekTo(MyData.mediaPlayer?.currentPosition?.minus(10000)?:0)
         }
         binding.musicOtish.setOnClickListener {
-            if (MyData.p!=list.size-1){
-                println("salom")
-                mediaPlayer!!.stop()
-                mediaPlayer = MediaPlayer.create(this,Uri.parse(list[MyData.p!!+1].musicPath))
-                binding.musicDuration.text = millisToTime(mediaPlayer!!.duration)
+            if (MyData.p!=MyData.list.size-1){
+                MyData.mediaPlayer!!.stop()
+               MyData.mediaPlayer = MediaPlayer.create(this,Uri.parse(MyData.list[MyData.p!!+1].musicPath))
+                binding.musicDuration.text = millisToTime(MyData.mediaPlayer!!.duration)
                 MyData.music = MyData.list[MyData.p!!.plus(1)]
                 binding.seekBar.max =MyData.mediaPlayer!!.duration
                 handler.postDelayed(runnable,1000)
                 MyData.p =MyData.p!!+1
-                mediaPlayer!!.start()
+                MyData.mediaPlayer!!.start()
             }else{
                 Toast.makeText(this, "Oxiriga keldingiz", Toast.LENGTH_SHORT).show()
+            }
+        }
+        binding.musicQaytish.setOnClickListener {
+            if (MyData.p!=0){
+                MyData.mediaPlayer!!.stop()
+                MyData.mediaPlayer = MediaPlayer.create(this,Uri.parse(MyData.list[MyData.p!!-1].musicPath))
+                binding.musicDuration.text = millisToTime(MyData.mediaPlayer!!.duration)
+                MyData.music = MyData.list[MyData.p!!.minus(1)]
+                binding.seekBar.max =MyData.mediaPlayer!!.duration
+                handler.postDelayed(runnable,1000)
+                MyData.p =MyData.p!!-1
+                MyData.mediaPlayer!!.start()
+            }else{
+                Toast.makeText(this, "Oldinga harakatlaning", Toast.LENGTH_SHORT).show()
+            }
+        }
+        MyData.musicPosition.observe(this) {
+            if (it == millisToTime(MyData.mediaPlayer!!.duration) && MyData.p != MyData.list.size - 1) {
+                MyData.mediaPlayer =
+                    MediaPlayer.create(this, Uri.parse(MyData.list[MyData.p!! + 1].musicPath))
+                binding.musicDuration.text = millisToTime(MyData.mediaPlayer!!.duration)
+                MyData.music = MyData.list[MyData.p!!.plus(1)]
+                binding.seekBar.max = MyData.mediaPlayer!!.duration
+                handler.postDelayed(runnable, 1000)
+                MyData.p = MyData.p!! + 1
+                MyData.mediaPlayer!!.start()
             }
         }
     }
     val runnable = object :Runnable {
         override fun run() {
-            val mediaPlayer = MyData.mediaPlayer
-                binding.musicPosition.text = millisToTime(mediaPlayer!!.currentPosition)
-                binding.seekBar.progress = mediaPlayer.currentPosition
+                binding.musicPosition.text = millisToTime(MyData.mediaPlayer!!.currentPosition)
+            MyData.musicPosition.postValue(binding.musicPosition.text.toString())
+            println(MyData.musicPosition)
+                binding.seekBar.progress = MyData.mediaPlayer!!.currentPosition
                 handler.postDelayed(this, 1000)
 
         }

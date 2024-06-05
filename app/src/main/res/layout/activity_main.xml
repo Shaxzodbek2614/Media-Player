@@ -34,7 +34,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_margin="20dp">
         <RelativeLayout
-            android:id="@+id/music"
+            android:id="@+id/music_bar"
             android:padding="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -48,13 +48,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="18sp"
-                    android:text="Shaxzodbek"
+                    android:text="Noma'lum ijrochi"
                     android:id="@+id/name"/>
                 <TextView
                     android:textColor="@color/white"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Shaxzodbek"
+                    android:text="Musiqa nomi"
                     android:id="@+id/auothor"/>
             </LinearLayout>
             <ImageView
